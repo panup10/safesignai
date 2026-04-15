@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SafeSign AI — Legal Clarity Engine</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap');
+
+  :root {
+    --bg: #080808;
+    --bg2: #0f0f0f;
+    --bg3: #161616;
+    --border: #222;
+    --accent: #00ff88;
+    --accent2: #ff3c3c;
+    --accent3: #ffd700;
+    --text: #e8e8e8;
+    --muted: #555;
+    --muted2: #333;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* HEADER */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    flex-shrink: 0;
+    z-index: 10;
+  }
+
+  .logo { display: flex; align-items: center; gap: 12px; }
+
+  .logo-icon {
+    width: 36px; height: 36px;
+    border: 2px solid var(--accent); border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    position: relative; overflow: hidden;
+    background: rgba(0,255,136,0.05);
+  }
+
+  .logo-text {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800; font-size: 18px; letter-spacing: 0.05em;
+  }
+  .logo-text span { color: var(--accent); }
+
+  .logo-sub {
+    font-size: 9px; color: var(--muted);
+    letter-spacing: 0.2em; text-transform: uppercase; margin-top: 1px;
+  }
+
+  .status-bar { display: flex; align-items: center; gap: 16px; }
+
+  .status-dot {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 10px; color: var(--muted); letter-spacing: 0.1em;
+  }
+
+  .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  .stage-badge {
+    font-size: 9px; padding: 3px 8px;
+    border: 1px solid var(--muted2); border-radius: 2px;
+    color: var(--muted); letter-spacing: 0.15em; text-transform: uppercase;
+  }
+
+  /* MAIN LAYOUT */
+  .main { display: flex; flex: 1; overflow: hidden; }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 220px; border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; flex-shrink: 0;
+    background: var(--bg); overflow-y: auto;
+  }
+  .sidebar::-webkit-scrollbar { width: 3px; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--muted2); }
+
+  .sb-section { padding: 16px; border-bottom: 1px solid var(--border); }
+
+  .sb-label {
+    font-size: 8px; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 10px;
+  }
+
+  .sb-btn {
+    display: block; width: 100%; text-align: left;
+    padding: 8px 10px; background: transparent;
+    border: 1px solid transparent; border-radius: 3px;
+    color: var(--muted); font-family: 'Space Mono', monospace;
+    font-size: 10px; cursor: pointer; transition: all 0.15s;
+    margin-bottom: 4px; letter-spacing: 0.03em; line-height: 1.4;
+  }
+  .sb-btn:hover { border-color: var(--border); color: var(--text); background: var(--bg3); }
+  .sb-btn .bi { display: block; font-size: 8px; color: var(--muted); margin-bottom: 2px; letter-spacing: 0.12em; }
+
+  .risk-item {
+    padding: 6px 0; border-bottom: 1px solid var(--muted2);
+    font-size: 9px; line-height: 1.5;
+  }
+  .risk-item:last-child { border-bottom: none; }
+  .risk-item strong { display: block; margin-bottom: 1px; }
+  .risk-item span { color: var(--muted); }
+
+  /* LANG SELECTOR in sidebar */
+  .lang-select {
+    width: 100%; background: var(--bg2);
+    border: 1px solid var(--border); border-radius: 3px;
+    padding: 7px 8px; color: var(--text);
+    font-family: 'Space Mono', monospace; font-size: 10px;
+    outline: none; cursor: pointer;
+  }
+  .lang-select:focus { border-color: var(--muted); }
+
+  /* CHAT AREA */
+  .chat-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+
+  .messages {
+    flex: 1; overflow-y: auto; padding: 24px;
+    display: flex; flex-direction: column; gap: 0;
+    scroll-behavior: smooth;
+  }
+  .messages::-webkit-scrollbar { width: 4px; }
+  .messages::-webkit-scrollbar-track { background: transparent; }
+  .messages::-webkit-scrollbar-thumb { background: var(--muted2); border-radius: 2px; }
+
+  /* WELCOME */
+  .welcome {
+    margin: auto; text-align: center; max-width: 480px;
+    padding: 40px 20px; animation: fadeIn 0.6s ease;
+  }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
+  .welcome-icon {
+    width: 64px; height: 64px; border: 2px solid var(--accent); border-radius: 8px;
+    margin: 0 auto 20px; display: flex; align-items: center; justify-content: center;
+    background: rgba(0,255,136,0.05); position: relative;
+  }
+  .welcome-icon::after {
+    content: ''; position: absolute; inset: -6px;
+    border: 1px solid rgba(0,255,136,0.12); border-radius: 12px;
+  }
+
+  .welcome h1 {
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 24px; margin-bottom: 8px;
+  }
+  .welcome h1 span { color: var(--accent); }
+
+  .welcome p {
+    font-size: 10px; color: var(--muted); line-height: 1.8;
+    letter-spacing: 0.04em; margin-bottom: 20px;
+  }
+
+  .welcome-tags { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+  .wtag {
+    font-size: 8px; padding: 3px 10px;
+    border: 1px solid var(--muted2); border-radius: 2px;
+    color: var(--muted); letter-spacing: 0.12em;
+  }
+
+  /* MESSAGES */
+  .msg { display: flex; gap: 14px; padding: 16px 0; border-bottom: 1px solid rgba(255,255,255,0.03); }
+
+  .msg-avatar {
+    width: 34px; height: 34px; border: 1px solid var(--border); border-radius: 3px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 8px; font-weight: 700; flex-shrink: 0;
+    letter-spacing: 0.05em; color: var(--muted); background: var(--bg2);
+  }
+  .msg.user .msg-avatar { background: rgba(0,255,136,0.08); border-color: rgba(0,255,136,0.25); color: var(--accent); }
+
+  .msg-content { flex: 1; min-width: 0; }
+
+  .msg-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .msg-name { font-size: 9px; font-weight: 700; letter-spacing: 0.15em; color: var(--text); }
+  .msg-time { font-size: 8px; color: var(--muted); margin-left: auto; }
+
+  .msg-mode {
+    font-size: 7px; padding: 2px 6px; border-radius: 2px;
+    letter-spacing: 0.1em; font-weight: 700;
+  }
+  .mode-analyze { background: rgba(0,255,136,0.1); color: var(--accent); border: 1px solid rgba(0,255,136,0.2); }
+  .mode-risk { background: rgba(255,60,60,0.1); color: var(--accent2); border: 1px solid rgba(255,60,60,0.2); }
+  .mode-questions { background: rgba(255,215,0,0.1); color: var(--accent3); border: 1px solid rgba(255,215,0,0.2); }
+
+  .msg-text { font-size: 11px; line-height: 1.9; color: var(--text); }
+
+  .msg-text .section-head {
+    display: block; font-size: 8px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--accent); margin: 12px 0 6px;
+    border-bottom: 1px solid var(--muted2); padding-bottom: 4px;
+  }
+  .msg-text .risk-high { color: var(--accent2); font-weight: 700; }
+  .msg-text .risk-med { color: var(--accent3); font-weight: 700; }
+  .msg-text .risk-low { color: var(--accent); font-weight: 700; }
+  .msg-text .rpill {
+    display: inline-block; padding: 2px 8px; border-radius: 2px;
+    font-size: 9px; font-weight: 700; margin-left: 8px;
+  }
+  .msg-text .rH { background: rgba(255,60,60,0.12); color: var(--accent2); border: 1px solid rgba(255,60,60,0.25); }
+  .msg-text .rM { background: rgba(255,215,0,0.1); color: var(--accent3); border: 1px solid rgba(255,215,0,0.2); }
+  .msg-text .rL { background: rgba(0,255,136,0.08); color: var(--accent); border: 1px solid rgba(0,255,136,0.18); }
+
+  .msg-text .q-line {
+    padding: 5px 0; border-bottom: 1px solid var(--muted2);
+    font-size: 10px; color: var(--text);
+  }
+  .msg-text .q-line:last-of-type { border-bottom: none; }
+  .msg-text .q-num { color: var(--accent); margin-right: 6px; }
+
+  .copy-qs {
+    margin-top: 10px; padding: 5px 12px;
+    background: transparent; border: 1px solid var(--muted2);
+    border-radius: 2px; color: var(--muted);
+    font-family: 'Space Mono', monospace; font-size: 9px;
+    cursor: pointer; letter-spacing: 0.1em; transition: all 0.15s;
+  }
+  .copy-qs:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* THINKING */
+  .thinking { display: flex; gap: 12px; padding: 14px 0; align-items: center; }
+  .thinking-av {
+    width: 34px; height: 34px; border: 1px solid var(--border); border-radius: 3px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--bg2); flex-shrink: 0;
+  }
+  .dots { display: flex; gap: 5px; align-items: center; padding-left: 4px; }
+  .dot-b {
+    width: 5px; height: 5px; border-radius: 50%; background: var(--muted2);
+    animation: blink 1.2s ease-in-out infinite;
+  }
+  .dot-b:nth-child(2) { animation-delay: 0.2s; }
+  .dot-b:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes blink { 0%,80%,100%{opacity:0.3;background:var(--muted2)} 40%{opacity:1;background:var(--accent)} }
+
+  /* INPUT AREA */
+  .input-area {
+    border-top: 1px solid var(--border); padding: 14px 24px;
+    background: var(--bg); flex-shrink: 0;
+  }
+  .input-row { display: flex; align-items: flex-end; gap: 10px; }
+  .input-wrap {
+    flex: 1; background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 4px; padding: 10px 14px; transition: border-color 0.2s;
+  }
+  .input-wrap:focus-within { border-color: var(--muted); }
+
+  textarea#inp {
+    width: 100%; background: transparent; border: none; outline: none;
+    color: var(--text); font-family: 'Space Mono', monospace;
+    font-size: 11px; resize: none; height: 36px; max-height: 120px; line-height: 1.6;
+  }
+  textarea#inp::placeholder { color: var(--muted); }
+
+  .send-btn {
+    width: 38px; height: 38px; background: var(--accent); border: none;
+    border-radius: 3px; cursor: pointer; display: flex;
+    align-items: center; justify-content: center; flex-shrink: 0;
+    transition: background 0.15s;
+  }
+  .send-btn:hover { background: #00cc6e; }
+  .send-btn:disabled { background: var(--muted2); cursor: not-allowed; }
+
+  .input-meta {
+    display: flex; align-items: center; justify-content: space-between; margin-top: 7px;
+  }
+  .meta-hint { font-size: 8px; color: var(--muted); letter-spacing: 0.08em; }
+  .char-c { font-size: 8px; color: var(--muted); }
+
+  /* Table */
+  .md-table {
+    width: 100%; border-collapse: collapse; font-size: 10px; margin: 8px 0;
+  }
+  .md-table th {
+    background: var(--bg3); color: var(--accent); font-size: 8px;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 6px 8px; border: 1px solid var(--border); text-align: left;
+  }
+  .md-table td { padding: 6px 8px; border: 1px solid var(--border); color: var(--text); vertical-align: top; }
+  .md-table tr:hover td { background: var(--bg3); }
+
+  .scroll-btn {
+    position: absolute; bottom: 80px; right: 24px;
+    width: 30px; height: 30px; background: var(--bg3);
+    border: 1px solid var(--border); border-radius: 50%;
+    display: none; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--muted); transition: all 0.2s; z-index: 5;
+  }
+  .scroll-btn.visible { display: flex; }
+  .scroll-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  @media (max-width: 600px) {
+    .sidebar { display: none; }
+    header { padding: 10px 14px; }
+    .messages { padding: 14px; }
+    .input-area { padding: 10px 14px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+        <path d="M9 1.5L11 7H16.5L12 10.5L13.5 16.5L9 13L4.5 16.5L6 10.5L1.5 7H7L9 1.5Z" fill="#00ff88"/>
+      </svg>
+    </div>
+    <div>
+      <div class="logo-text">SAFE<span>SIGN</span> AI</div>
+      <div class="logo-sub">Legal clarity engine</div>
+    </div>
+  </div>
+  <div class="status-bar">
+    <div class="status-dot"><div class="dot"></div><span id="status-text">CLAUDE ACTIVE</span></div>
+    <div class="stage-badge" id="mode-badge">STANDBY</div>
+  </div>
+</header>
+
+<div class="main">
+
+  <div class="sidebar">
+    <div class="sb-section">
+      <div class="sb-label">Quick analyze</div>
+      <button class="sb-btn" onclick="inject('Analyze this rental lease agreement:\n\n')"><span class="bi">// CONTRACT</span>Rental lease</button>
+      <button class="sb-btn" onclick="inject('Analyze this employment contract:\n\n')"><span class="bi">// CONTRACT</span>Employment</button>
+      <button class="sb-btn" onclick="inject('Analyze this NDA:\n\n')"><span class="bi">// CONTRACT</span>NDA</button>
+      <button class="sb-btn" onclick="inject('Analyze this freelance service agreement:\n\n')"><span class="bi">// CONTRACT</span>Freelance deal</button>
+      <button class="sb-btn" onclick="inject('Analyze these terms of service:\n\n')"><span class="bi">// CONTRACT</span>Terms of service</button>
+      <button class="sb-btn" onclick="inject('Analyze this loan agreement:\n\n')"><span class="bi">// CONTRACT</span>Loan agreement</button>
+    </div>
+
+    <div class="sb-section">
+      <div class="sb-label">Output language</div>
+      <select class="lang-select" id="lang-select" onchange="setLang(this.value)">
+        <option value="English">English</option>
+        <option value="Hindi">Hindi</option>
+        <option value="Telugu">Telugu</option>
+        <option value="Tamil">Tamil</option>
+        <option value="Spanish">Spanish</option>
+        <option value="French">French</option>
+        <option value="Arabic">Arabic</option>
+        <option value="Portuguese">Portuguese</option>
+        <option value="German">German</option>
+        <option value="Mandarin Chinese">Mandarin Chinese</option>
+      </select>
+    </div>
+
+    <div class="sb-section">
+      <div class="sb-label">Risk radar</div>
+      <div class="risk-item"><strong style="color:var(--accent2)">AUTO-RENEWAL</strong><span>Check clause 4, 7, 12 first</span></div>
+      <div class="risk-item"><strong style="color:var(--accent2)">ONE-SIDED EXIT</strong><span>Asymmetric termination</span></div>
+      <div class="risk-item"><strong style="color:var(--accent3)">HIDDEN FEES</strong><span>Buried in later clauses</span></div>
+      <div class="risk-item"><strong style="color:var(--accent3)">LIABILITY CAP</strong><span>Read indemnity section</span></div>
+      <div class="risk-item"><strong style="color:var(--muted)">NON-COMPETE</strong><span>Duration + geography scope</span></div>
+    </div>
+
+    <div class="sb-section">
+      <div class="sb-label">Commands</div>
+      <button class="sb-btn" onclick="inject('What are the top 3 risks in this document?')"><span class="bi">// QUERY</span>Top risks only</button>
+      <button class="sb-btn" onclick="inject('Generate 10 questions I should ask before signing')"><span class="bi">// QUERY</span>More questions</button>
+      <button class="sb-btn" onclick="inject('Is this contract fair? Compare to standard terms.')"><span class="bi">// QUERY</span>Fairness check</button>
+      <button class="sb-btn" onclick="inject('Summarize this in 3 bullet points only.')"><span class="bi">// QUERY</span>Quick summary</button>
+      <button class="sb-btn" onclick="clearChat()"><span class="bi">// SYSTEM</span>Clear chat</button>
+    </div>
+
+    <div class="sb-section">
+      <div class="sb-label">Plans</div>
+      <div style="font-size:9px;color:var(--muted);line-height:2">
+        <div>FREE — 1 doc/month</div>
+        <div style="color:var(--accent)">PRO — $9/mo unlimited</div>
+        <div>BIZ — $29/mo team+API</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chat-area">
+    <div class="messages" id="messages">
+      <div class="welcome" id="welcome">
+        <div class="welcome-icon">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+            <path d="M14 2L17 10H25L19 14.5L21.5 23L14 18.5L6.5 23L9 14.5L3 10H11L14 2Z" fill="#00ff88"/>
+          </svg>
+        </div>
+        <h1>SAFE<span>SIGN</span> AI</h1>
+        <p>
+          Paste any legal document below and I'll analyze it instantly —<br>
+          plain English summary, risk flags, clause breakdown,<br>
+          and smart questions to ask before you sign.
+        </p>
+        <div class="welcome-tags">
+          <div class="wtag">LEASES</div>
+          <div class="wtag">EMPLOYMENT</div>
+          <div class="wtag">NDA</div>
+          <div class="wtag">FREELANCE</div>
+          <div class="wtag">LOANS</div>
+          <div class="wtag">TERMS OF SERVICE</div>
+          <div class="wtag">MORTGAGE</div>
+        </div>
+      </div>
+    </div>
+
+    <button class="scroll-btn" id="scroll-btn" onclick="scrollBottom()">↓</button>
+
+    <div class="input-area">
+      <div class="input-row">
+        <div class="input-wrap">
+          <textarea id="inp"
+            placeholder="Paste your legal document here, or ask a question..."
+            onkeydown="handleKey(event)"
+            oninput="autoResize(this);updateCount(this)"></textarea>
+        </div>
+        <button class="send-btn" id="send-btn" onclick="send()">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M2 7H12M12 7L8 3M12 7L8 11" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+      <div class="input-meta">
+        <div class="meta-hint">ENTER to send &nbsp;·&nbsp; SHIFT+ENTER new line &nbsp;·&nbsp; SafeSign AI is not a lawyer</div>
+        <div class="char-c"><span id="cc">0</span> chars</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let lang = 'English';
+let history = [];
+let busy = false;
+
+const SYSTEM = `You are SafeSign AI — a precise, surgical legal document analyzer. Co-founder energy, not consultant energy. Every sentence is load-bearing. Zero fluff.
+
+When given a legal document, respond in this exact structure:
+
+**OVERALL RISK** [HIGH/MEDIUM/LOW] — one sentence verdict.
+
+**SUMMARY**
+5-sentence plain English overview of what this document means for the user.
+
+**CLAUSE BREAKDOWN**
+For each important clause:
+[CLAUSE NAME] [HIGH/MEDIUM/LOW]
+Plain explanation in 1-2 sentences.
+Why it matters: one sentence.
+
+**QUESTIONS TO ASK**
+1. First question
+2. Second question
+(minimum 7 questions)
+
+---
+SafeSign AI is not a lawyer. Consult a qualified professional for advice specific to your situation.
+
+Rules:
+- Zero legal jargon. Write as if explaining to a smart 14-year-old.
+- Flag auto-renewal, one-sided exit, hidden fees, liability waivers, non-compete as HIGH risk.
+- Direct. No hedging. No filler.
+- Output language: LANG_TOKEN`;
+
+function setLang(val) { lang = val; }
+
+function inject(text) {
+  const el = document.getElementById('inp');
+  el.value = text;
+  el.focus();
+  autoResize(el);
+  updateCount(el);
+  el.setSelectionRange(text.length, text.length);
+}
+
+function clearChat() {
+  history = [];
+  const m = document.getElementById('messages');
+  m.innerHTML = `<div class="welcome" id="welcome">
+    <div class="welcome-icon">
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+        <path d="M14 2L17 10H25L19 14.5L21.5 23L14 18.5L6.5 23L9 14.5L3 10H11L14 2Z" fill="#00ff88"/>
+      </svg>
+    </div>
+    <h1>SAFE<span style="color:var(--accent)">SIGN</span> AI</h1>
+    <p>Paste any legal document below and I'll analyze it instantly.</p>
+    <div class="welcome-tags">
+      <div class="wtag">LEASES</div>
+      <div class="wtag">EMPLOYMENT</div>
+      <div class="wtag">NDA</div>
+      <div class="wtag">FREELANCE</div>
+      <div class="wtag">LOANS</div>
+    </div>
+  </div>`;
+  document.getElementById('mode-badge').textContent = 'STANDBY';
+}
+
+function autoResize(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 120) + 'px'; }
+function updateCount(el) { document.getElementById('cc').textContent = el.value.length; }
+function handleKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }
+function scrollBottom() { const m = document.getElementById('messages'); m.scrollTop = m.scrollHeight; }
+function getTime() { return new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }); }
+
+function detectMode(text) {
+  const t = text.toLowerCase();
+  if (t.includes('analyze') || t.includes('contract') || t.includes('agreement') || t.includes('lease') || t.includes('nda')) return ['ANALYZE', 'mode-analyze'];
+  if (t.includes('risk') || t.includes('flag') || t.includes('danger') || t.includes('trap')) return ['RISK SCAN', 'mode-risk'];
+  if (t.includes('question') || t.includes('ask') || t.includes('sign')) return ['QUESTIONS', 'mode-questions'];
+  return ['QUERY', 'mode-analyze'];
+}
+
+function renderMsg(text) {
+  let h = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  h = h.replace(/\*\*OVERALL RISK\*\*\s*\[HIGH\]/g, '<span class="section-head">overall risk</span><span class="risk-high">HIGH RISK</span><span class="rpill rH">HIGH</span>');
+  h = h.replace(/\*\*OVERALL RISK\*\*\s*\[MEDIUM\]/g, '<span class="section-head">overall risk</span><span class="risk-med">MEDIUM RISK</span><span class="rpill rM">MEDIUM</span>');
+  h = h.replace(/\*\*OVERALL RISK\*\*\s*\[LOW\]/g, '<span class="section-head">overall risk</span><span class="risk-low">LOW RISK</span><span class="rpill rL">LOW</span>');
+  h = h.replace(/\*\*SUMMARY\*\*/g, '<span class="section-head">summary</span>');
+  h = h.replace(/\*\*CLAUSE BREAKDOWN\*\*/g, '<span class="section-head">clause breakdown</span>');
+  h = h.replace(/\*\*QUESTIONS TO ASK\*\*/g, '<span class="section-head">questions to ask before signing</span>');
+  h = h.replace(/\[HIGH\]/g, '<span class="rpill rH">HIGH</span>');
+  h = h.replace(/\[MEDIUM\]/g, '<span class="rpill rM">MED</span>');
+  h = h.replace(/\[LOW\]/g, '<span class="rpill rL">LOW</span>');
+  h = h.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  h = h.replace(/^(\d+)\.\s(.+)$/gm, '<div class="q-line"><span class="q-num">$1.</span> $2</div>');
+  const tableRegex = /(\|.+\|\n)+/g;
+  h = h.replace(tableRegex, (match) => {
+    const rows = match.trim().split('\n').filter(r => r.trim() && !r.match(/^\|[\s\-|]+\|$/));
+    if (rows.length < 2) return match;
+    let table = '<table class="md-table">';
+    rows.forEach((row, i) => {
+      const cells = row.split('|').filter((_, ci) => ci > 0 && ci < row.split('|').length - 1);
+      if (i === 0) table += '<tr>' + cells.map(c => `<th>${c.trim()}</th>`).join('') + '</tr>';
+      else table += '<tr>' + cells.map(c => `<td>${c.trim()}</td>`).join('') + '</tr>';
+    });
+    return table + '</table>';
+  });
+  h = h.replace(/^---$/gm, '<hr style="border:none;border-top:1px solid var(--muted2);margin:10px 0">');
+  h = h.replace(/\n\n/g, '<br><br>');
+  h = h.replace(/\n/g, '<br>');
+  return h;
+}
+
+function addMsg(role, text) {
+  const w = document.getElementById('welcome');
+  if (w) w.remove();
+  const [mode, mClass] = detectMode(text);
+  const msgs = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'msg ' + role;
+  const av = role === 'user' ? 'YOU' : 'SS';
+  const name = role === 'user' ? 'YOU' : 'SAFESIGN AI';
+  const modeHtml = role === 'ai' ? `<span class="msg-mode ${mClass}">${mode}</span>` : '';
+  div.innerHTML = `
+    <div class="msg-avatar">${av}</div>
+    <div class="msg-content">
+      <div class="msg-header">
+        <span class="msg-name">${name}</span>
+        ${modeHtml}
+        <span class="msg-time">${getTime()}</span>
+      </div>
+      <div class="msg-text">${role === 'ai' ? renderMsg(text) : text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+      ${role === 'ai' && text.includes('QUESTIONS TO ASK') ? '<button class="copy-qs" onclick="copyQs(this)">// COPY ALL QUESTIONS</button>' : ''}
+    </div>`;
+  msgs.appendChild(div);
+  scrollBottom();
+}
+
+function showThinking() {
+  const msgs = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'thinking'; div.id = 'thinking';
+  div.innerHTML = `
+    <div class="thinking-av">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+        <rect x="1" y="1" width="4" height="4" fill="#555"/>
+        <rect x="7" y="1" width="4" height="4" fill="#333"/>
+        <rect x="1" y="7" width="4" height="4" fill="#333"/>
+        <rect x="7" y="7" width="4" height="4" fill="#222"/>
+      </svg>
+    </div>
+    <div class="dots">
+      <div class="dot-b"></div><div class="dot-b"></div><div class="dot-b"></div>
+    </div>`;
+  msgs.appendChild(div);
+  scrollBottom();
+}
+
+function removeThinking() { const t = document.getElementById('thinking'); if (t) t.remove(); }
+
+function copyQs(btn) {
+  const msgText = btn.previousElementSibling.innerText;
+  const lines = msgText.split('\n').filter(l => /^\d+\./.test(l.trim()));
+  navigator.clipboard.writeText(lines.join('\n')).then(() => {
+    btn.textContent = '// COPIED!';
+    setTimeout(() => btn.textContent = '// COPY ALL QUESTIONS', 2000);
+  });
+}
+
+async function send() {
+  if (busy) return;
+  const el = document.getElementById('inp');
+  const text = el.value.trim();
+  if (!text) return;
+
+  addMsg('user', text);
+  history.push({ role: 'user', content: text });
+  el.value = ''; autoResize(el); updateCount(el);
+
+  const [mode] = detectMode(text);
+  document.getElementById('mode-badge').textContent = mode || 'QUERY';
+
+  busy = true;
+  document.getElementById('send-btn').disabled = true;
+  document.getElementById('status-text').textContent = 'ANALYZING...';
+  showThinking();
+
+  try {
+    const response = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        system: SYSTEM.replace('LANG_TOKEN', lang),
+        messages: history
+      })
+    });
+
+    removeThinking();
+    const data = await response.json();
+
+    if (data.error) {
+      addMsg('ai', '// ERROR: ' + (data.error.message || 'Server error. Try again.'));
+    } else {
+      const reply = data.content.map(i => i.text || '').join('');
+      history.push({ role: 'assistant', content: reply });
+      addMsg('ai', reply);
+    }
+  } catch (err) {
+    removeThinking();
+    addMsg('ai', '// CONNECTION ERROR: Check your internet and try again.');
+  }
+
+  busy = false;
+  document.getElementById('send-btn').disabled = false;
+  document.getElementById('status-text').textContent = 'CLAUDE ACTIVE';
+  document.getElementById('inp').focus();
+}
+
+document.getElementById('messages').addEventListener('scroll', () => {
+  const m = document.getElementById('messages');
+  const btn = document.getElementById('scroll-btn');
+  const atBottom = m.scrollHeight - m.scrollTop - m.clientHeight < 80;
+  btn.classList.toggle('visible', !atBottom);
+});
+</script>
+</body>
+</html>
